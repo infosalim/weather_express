@@ -28,12 +28,38 @@ app.get('', (req, res)=>{
     });
 });
 
+app.get('/weather', (req, res)=>{
+    if(!req.query.address){
+        return res.send({
+            error: 'You must provide an address!'
+        });
+    }
+    res.send({
+        forecast: 'It is snowing',
+        location: 'Barlin',
+        address: req.query.address
+    })
+})
+
 app.get('/about', (req, res)=>{
     res.render('about',{
         title: 'About me',
         name: 'Salim Hossain'
     });
 });
+
+app.get('/products', (req, res)=>{
+
+    if(!req.query.search){
+        return res.send({
+            error: 'You must send the search term!'
+        });
+    }
+    console.log(req.query);
+    res.send({
+        person: []
+    });
+})
 
 app.get('/help', (req, res)=>{
     res.render('help',{
