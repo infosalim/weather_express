@@ -2,6 +2,8 @@ const path = require('path');
 
 const express = require('express');
 const hbs = require('hbs');
+const geocode = require('./utils/geocode');
+const forecast = require('./utils/forecast');
 
 const app = express();
 
@@ -21,36 +23,50 @@ hbs.registerPartials(partialsPath);
 // Setup static direcory to serve
 app.use(express.static(publicDirectoryPath));
 
-app.get('', (req, res)=>{
-    res.render('index',{
+app.get('', (req, res) => {
+    res.render('index', {
         title: 'Weather Application',
         name: 'Salim Hossain'
     });
 });
 
-app.get('/weather', (req, res)=>{
-    if(!req.query.address){
+app.get('/weather', (req, res) => {
+    if (!req.query.address) {
         return res.send({
             error: 'You must provide an address!'
         });
     }
-    res.send({
-        forecast: 'It is snowing',
-        location: 'Barlin',
-        address: req.query.address
+
+    geocode(req.query.address, (error, { latitude, longitude, location }) => {
+        if (error) {
+            return res.send({ error })
+        }
+
+        forecast(latitude, longitude, (error, forecastData) => {
+            if (error) {
+                return res.send({ error })
+            }
+
+            res.send({
+                forecast: forecastData,
+                location,
+                address: req.query.address
+            });
+        })
     })
+
 })
 
-app.get('/about', (req, res)=>{
-    res.render('about',{
+app.get('/about', (req, res) => {
+    res.render('about', {
         title: 'About me',
         name: 'Salim Hossain'
     });
 });
 
-app.get('/products', (req, res)=>{
+app.get('/products', (req, res) => {
 
-    if(!req.query.search){
+    if (!req.query.search) {
         return res.send({
             error: 'You must send the search term!'
         });
@@ -61,24 +77,24 @@ app.get('/products', (req, res)=>{
     });
 })
 
-app.get('/help', (req, res)=>{
-    res.render('help',{
+app.get('/help', (req, res) => {
+    res.render('help', {
         helpText: 'This is some helpful text!',
         title: 'About me',
         name: 'Salim Hossain'
     });
 });
 
-app.get('/help/*', (req, res)=>{
-    res.render('404',{
+app.get('/help/*', (req, res) => {
+    res.render('404', {
         title: '404',
         name: 'Salim Hossain',
         errorMessage: 'Help article not found!'
     });
 });
 
-app.get('*', (req, res)=>{
-    res.render('404',{
+app.get('*', (req, res) => {
+    res.render('404', {
         title: '404',
         name: 'Salim Hossain',
         errorMessage: 'Page not found!'
@@ -86,6 +102,6 @@ app.get('*', (req, res)=>{
 });
 
 
-app.listen('3000', ()=>{
+app.listen('3000', () => {
     console.log('Server is running on port 3000!');
 });
